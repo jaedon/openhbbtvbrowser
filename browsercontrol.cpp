@@ -189,6 +189,19 @@ void CommandClient::readCommand()
         case CommandAITChange:
             emit setAITData();
             break;
+
+        case CommandStopChange:
+            emit setMediaStop();
+            break;
+
+        case CommandTimeChange:
+            QDataStream dataStream(buf);
+            quint32 pos, len;
+            dataStream >> len
+                       >> pos;
+            emit setMediaDuration(len);
+            emit setMediaPosition(pos);
+            break;
         }
     }
 }
@@ -215,5 +228,34 @@ bool CommandClient::writeCommand(int command, const QString &data)
               << (qint32)command
               << (qint32)data.size();
     m_socket->write(data.toStdString().c_str(), data.size());
+    return m_socket->waitForConnected(1000);
+}
+
+bool CommandClient::writeCommand(int command, const int &pos)
+{
+    if (!m_socket->isValid())
+        return false;
+
+    QDataStream outStream(m_socket);
+    outStream << (qint32)987654321
+              << (qint32)command
+              << (qint32)4
+              << (qint32)pos;
+    return m_socket->waitForConnected(1000);
+}
+
+bool CommandClient::writeCommand(int command, const QRect &rect)
+{
+    if (!m_socket->isValid())
+        return false;
+
+    QDataStream outStream(m_socket);
+    outStream << (qint32)987654321
+              << (qint32)command
+              << (qint32)16
+              << (qint32)rect.left()
+              << (qint32)rect.top()
+              << (qint32)rect.width()
+              << (qint32)rect.height();
     return m_socket->waitForConnected(1000);
 }

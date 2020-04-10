@@ -28763,6 +28763,116 @@ class OipfAVControlMapper {
 
 /***/ }),
 
+/***/ "./src/js/hbbtv-polyfill/a-v-hole-control-embedded-object.js":
+/*!*******************************************************************!*\
+  !*** ./src/js/hbbtv-polyfill/a-v-hole-control-embedded-object.js ***!
+  \*******************************************************************/
+/*! exports provided: OipfAVHoleControlMapper */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OipfAVHoleControlMapper", function() { return OipfAVHoleControlMapper; });
+/**
+ * OIPF
+ * Release 1 Specification
+ * Volume 5 - Declarative Application Environment
+ * 7.14.1 The CEA 2014 A/V Control embedded object
+ */
+
+class OipfAVHoleControlMapper {
+
+    /**
+     * object tag with media type
+     * @param {*} node
+     */
+    constructor(node) {
+        this.avControlObject = node;
+
+        // let video playback fail. Modern browsers don't support any handling of media events and methods on <object type="" data=""> tags
+        // setting data to unknown url will cause a GET 40x.. found no better soluttion yet to disable playback
+        window.signalopenhbbtvbrowser("OipfAVControlObject.data=" + this.avControlObject.data);
+        this.avControlObject.data = "http://google.com/400";
+        this.videoElement = document.createElement('embed');
+        this.videoElement.setAttribute('id', 'hbbtv-polyfill-video-player');
+        this.videoElement.setAttribute('type', 'application/x-ppapi-videohole');
+        this.videoElement.setAttribute('style', 'top:0px; left:0px; width:100%; height:100%;');
+
+        this.mapAvControlToApp();
+        this.watchavControlObjectMutations(this.avControlObject);
+        this.avControlObject.appendChild(this.videoElement);
+        // ANSI CTA-2014-B - 5.7.1.f - 5
+        this.avControlObject.playTime = 0;
+        this.avControlObject.playState = 0;
+        this.avControlObject.playPosition = 0;
+        this.avControlObject.speed = 0;
+        this.avControlObject.error = -1;
+
+        var rect = this.avControlObject.getBoundingClientRect();
+        window.signalopenhbbtvbrowser("OipfAVControlObject.rect=" + rect.left + "," + rect.right + "," + rect.top + "," + rect.bottom);
+    }
+
+    mapAvControlToApp() {
+        this.avControlObject.play = (speed) => {
+            window.signalopenhbbtvbrowser("OipfAVControlObject.play=" + speed);
+            this.avControlObject.speed = speed;
+            return true;
+        }
+        this.avControlObject.stop = () => {
+            window.signalopenhbbtvbrowser("OipfAVControlObject.stop");
+            this.avControlObject.playState = 0;
+            this.avControlObject.playPosition = 0;
+            this.avControlObject.speed = 0;
+            return true;
+        };
+        this.avControlObject.seek = (posInMs) => {
+            window.signalopenhbbtvbrowser("OipfAVControlObject.seek=" + posInMs);
+            return true;
+        };
+    }
+    watchavControlObjectMutations(avControlObject) {
+        // if url of control object changed - change url of video object
+        const handleDataChanged = (event) => { // MutationRecord
+            if (event.attributeName === "data") {
+                if (this.avControlObject.data.search("http://google.com/400") < 0) { // prevent infinite data change loop
+                    // let video playback fail. Modern browsers don't support any handling of media events and methods on <object type="" data=""> tags
+                    // setting data to unknown url will cause a GET 40x.. found no better soluttion yet to disable playback
+                    window.signalopenhbbtvbrowser("OipfAVControlObject.data=" + this.avControlObject.data);
+                    this.avControlObject.data = "http://google.com/400";
+                }
+            }
+        };
+        const handleMutation = (mutationList, mutationObserver) => {
+            mutationList.forEach((mutation) => {
+                //console.log("Typechange", mutation);
+                switch (mutation.type) {
+                    case 'childList':
+                        break;
+                    case 'attributes':
+                        handleDataChanged(mutation);
+                        /* An attribute value changed on the element in
+                           mutation.target; the attribute name is in,.,
+                           mutation.attributeName and its previous value is in
+                           mutation.oldValue */
+                        break;
+                }
+            });
+        };
+
+        const mutationObserver = new MutationObserver(handleMutation);
+        mutationObserver.observe(avControlObject, {
+            'subtree': true,
+            'childList': true,
+            'attributes': true,
+            'characterData': true,
+            'attributeFilte': ["type"]
+        });
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/js/hbbtv-polyfill/hbb-video-handler.js":
 /*!****************************************************!*\
   !*** ./src/js/hbbtv-polyfill/hbb-video-handler.js ***!
@@ -28775,6 +28885,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "VideoHandler", function() { return VideoHandler; });
 /* harmony import */ var _video_broadcast_embedded_object__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./video-broadcast-embedded-object */ "./src/js/hbbtv-polyfill/video-broadcast-embedded-object.js");
 /* harmony import */ var _a_v_control_embedded_object__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./a-v-control-embedded-object */ "./src/js/hbbtv-polyfill/a-v-control-embedded-object.js");
+/* harmony import */ var _a_v_hole_control_embedded_object__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./a-v-hole-control-embedded-object */ "./src/js/hbbtv-polyfill/a-v-hole-control-embedded-object.js");
+
 
 
 
@@ -28815,13 +28927,15 @@ class VideoHandler {
             mimeType.lastIndexOf('audio/mp4', 0) === 0 ||  // aac audio
             mimeType.lastIndexOf('audio/mpeg', 0) === 0) { // mp3 audio
             _DEBUG_ && console.log('hbbtv-polyfill: BROADBAND VIDEO PLAYER ...');
-            window.signalopenhbbtvbrowser("OipfAVControlMapper.data=" + node.data);
-            new _a_v_control_embedded_object__WEBPACK_IMPORTED_MODULE_1__["OipfAVControlMapper"](node);
+            window.signalopenhbbtvbrowser("OipfAVControlMapper");
+            window.OipfAVControlObject = node;
+            new _a_v_hole_control_embedded_object__WEBPACK_IMPORTED_MODULE_2__["OipfAVHoleControlMapper"](node);
         }
         // setup mpeg dash player
         if(mimeType.lastIndexOf('application/dash+xml', 0) === 0){
             _DEBUG_ && console.log('hbbtv-polyfill: DASH VIDEO PLAYER ...');
-            window.signalopenhbbtvbrowser("OipfAVControlMapper.dash=" + node.data);
+            window.signalopenhbbtvbrowser("OipfAVControlMapper");
+            window.OipfAVControlObject = null;
             new _a_v_control_embedded_object__WEBPACK_IMPORTED_MODULE_1__["OipfAVControlMapper"](node, true);
         }
     }

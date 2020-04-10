@@ -160,6 +160,8 @@ public:
         CommandUrlChange = 1,
         CommandSIChange = 2,
         CommandAITChange = 3,
+        CommandStopChange = 4,
+        CommandTimeChange = 5,
 
         CommandBroadcastPlay = 1001,
         CommandBroadcastStop = 1002,
@@ -167,16 +169,27 @@ public:
         CommandVolumeDown = 1004,
         CommandVolumeUp = 1005,
         CommandExit = 1006,
+        CommandMediaPlay = 1011,
+        CommandMediaPause = 1012,
+        CommandMediaContinue = 1013,
+        CommandMediaStop = 1014,
+        CommandMediaSeek = 1015,
+        CommandMediaRect = 1016,
     };
 
     CommandClient(const QString &sockFile = QString("/tmp/.sock.browser"));
     bool writeCommand(int command);
     bool writeCommand(int command, const QString &data);
+    bool writeCommand(int command, const int &pos);
+    bool writeCommand(int command, const QRect &rect);
 
 Q_SIGNALS:
     void setUrl(const QString &url);
     void setSIData(const quint32 &pmt, const quint32 &tsid, const quint32 &onid, const quint32 &ssid, const quint32 &chantype, const quint32 &chanid);
     void setAITData();
+    void setMediaStop();
+    void setMediaDuration(const quint32 &len);
+    void setMediaPosition(const quint32 &pos);
 
 protected Q_SLOTS:
     void readCommand();
