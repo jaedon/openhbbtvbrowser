@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = openhbbtvbrowser
-QT += webenginewidgets
+QT += webenginewidgets websockets
 CONFIG += c++1z
 CONFIG += console
 
