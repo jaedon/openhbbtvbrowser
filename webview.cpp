@@ -45,25 +45,6 @@ void WebView::injectHbbTVScripts(const QString &src)
     page()->scripts().insert(script);
 }
 
-void WebView::injectXmlHttpRequestScripts()
-{
-    QWebEngineScript script;
-
-    QString s = QString::fromLatin1("(function() {"
-                                    "  var element = document.createElement('script');"
-                                    "  element.setAttribute('type','text/javascript');"
-                                    "  element.setAttribute('src','qrc:/xmlhttprequest_quirks.js');"
-                                    "  document.head.appendChild(element);"
-                                    "})()");
-
-    script.setName("xmlhttprequest_quirks");
-    script.setSourceCode(s);
-    script.setInjectionPoint(QWebEngineScript::DocumentReady);
-    script.setRunsOnSubFrames(true);
-    script.setWorldId(QWebEngineScript::MainWorld);
-    page()->scripts().insert(script);
-}
-
 void WebView::setCurrentChannel(const int &onid, const int &tsid, const int &sid)
 {
     QWebEngineScript script;
