@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
     parser.addOption(QCommandLineOption("tsid", "Transport Stream ID", "tsid"));
     parser.addOption(QCommandLineOption("sid", "Service ID", "sid"));
     parser.addOption(QCommandLineOption("enable-script-debugging", "EnableScript Debugging", "enable-script-debugging"));
+    parser.addOption(QCommandLineOption("enable-mpegts-support", "Enable mpegts.js support (Experimental)", "enable-mpegts-support"));
     parser.parse(QCoreApplication::arguments());
     if (parser.isSet("src"))
         src = parser.value("src");
@@ -123,6 +124,7 @@ int main(int argc, char *argv[])
     if (parser.isSet("sid"))
         sid = parser.value("sid").toInt();
     bool scriptDebugging = parser.isSet("enable-script-debugging");
+    bool mpegtsSupport = parser.isSet("enable-mpegts-support");
 
     QUrl url = commandLineUrlArgument();
 
@@ -135,7 +137,8 @@ int main(int argc, char *argv[])
 #else
     window->resize(1280, 720);
 #endif
-    window->webView()->injectMpegTs();
+    if (mpegtsSupport)
+        window->webView()->injectMpegTs();
     window->webView()->injectHbbTVScripts(src);
     if (onid != -1 && tsid != -1 && sid != -1)
         window->webView()->setCurrentChannel(onid, tsid, sid);

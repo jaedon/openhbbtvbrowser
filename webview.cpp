@@ -35,6 +35,7 @@ void WebView::injectMpegTs()
                                     "  element.setAttribute('type', 'text/javascript');"
                                     "  element.setAttribute('src', 'qrc:/mpegts.js');"
                                     "  document.head.appendChild(element);"
+                                    "  window.HBBTV_POLYFILL_MPEGTS_SUPPORT = true;"
                                     "})();");
 
     script.setName("mpegts");
@@ -43,6 +44,9 @@ void WebView::injectMpegTs()
     script.setRunsOnSubFrames(true);
     script.setWorldId(QWebEngineScript::MainWorld);
     page()->scripts().insert(script);
+
+    mpegTsInjected = true;
+    emit broadcastStop();
 }
 
 void WebView::injectHbbTVScripts(const QString &src)
@@ -165,9 +169,11 @@ void WebView::sendKeyEvent(const int &keyCode)
 void WebView::titleChanged(const QString &title)
 {
     if (title.startsWith("OipfVideoBroadcastEmbeddedObject")) {
-        emit broadcastPlay();
+        if (!mpegTsInjected)
+            emit broadcastPlay();
     } else if (title.startsWith("OipfAVControlObject")) {
-        emit broadcastStop();
+        if (!mpegTsInjected)
+            emit broadcastStop();
 
         QString url = title.mid(20);
         qDebug() << url;

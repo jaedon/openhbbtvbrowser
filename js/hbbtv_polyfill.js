@@ -70608,6 +70608,20 @@ class OipfVideoBroadcastMapper {
             oipfPluginObject.appendChild(this.videoTag);
             oipfPluginObject.playState = 2;
             window.HBBTV_POLYFILL_DEBUG &&  console.info('hbbtv-polyfill: BROADCAST VIDEO PLAYER ... ADDED');
+
+            if (window.HBBTV_POLYFILL_MPEGTS_SUPPORT) {
+                this.mpegtsPlayer;
+                if (mpegts.getFeatureList().mseLivePlayback) {
+                    this.mpegtsPlayer = mpegts.createPlayer({
+                        type: 'mse',  // could also be mpegts, m2ts, flv
+                        isLive: true,
+                        url: 'http://127.0.0.1:8001/1:0:19:2B66:3F3:1:C00000:0:0:0:' // TODO: get LiveTV from m3u8
+                    });
+                    this.mpegtsPlayer.attachMediaElement(this.videoTag);
+                    this.mpegtsPlayer.load();
+                    this.mpegtsPlayer.play();
+                }
+            }
         }
 
         // inject OIPF methods ...

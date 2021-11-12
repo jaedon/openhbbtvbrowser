@@ -30,6 +30,7 @@ protected Q_SLOTS:
 private:
     QLabel *m_quitMsg;
     int m_quitMsgStatus;
+    bool mpegTsInjected;
 };
 
 #endif // WEBVIEW_H
