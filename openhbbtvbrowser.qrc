@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file alias="hbbtv_polyfill.js">js/hbbtv_polyfill.js</file>
+        <file alias="mpegts.js">js/mpegts.js</file>
     </qresource>
 </RCC>

@@ -26,6 +26,25 @@ WebView::WebView(QWidget *parent)
     connect(this, &QWebEngineView::loadFinished, this, &WebView::loadFinished);
 }
 
+void WebView::injectMpegTs()
+{
+    QWebEngineScript script;
+
+    QString s = QString::fromLatin1("(function() {"
+                                    "  var element = document.createElement('script');"
+                                    "  element.setAttribute('type', 'text/javascript');"
+                                    "  element.setAttribute('src', 'qrc:/mpegts.js');"
+                                    "  document.head.appendChild(element);"
+                                    "})();");
+
+    script.setName("mpegts");
+    script.setSourceCode(s);
+    script.setInjectionPoint(QWebEngineScript::DocumentReady);
+    script.setRunsOnSubFrames(true);
+    script.setWorldId(QWebEngineScript::MainWorld);
+    page()->scripts().insert(script);
+}
+
 void WebView::injectHbbTVScripts(const QString &src)
 {
     QWebEngineScript script;
